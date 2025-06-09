@@ -3,7 +3,7 @@ import math
 
 from langchain.tools import tool
 
-from tb3_agent.utils import normalize_angle
+from turtlebot3_agent.utils import normalize_angle
 
 
 @tool

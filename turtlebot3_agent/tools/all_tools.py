@@ -1,5 +1,5 @@
-# from tb3_agent.tools.api_tools import get_information_from_internet
-from tb3_agent.tools.math_tools import (
+# from turtlebot3_agent.tools.api_tools import get_information_from_internet
+from turtlebot3_agent.tools.math_tools import (
     calculate_absolute_angle,
     calculate_distance_and_relative_angle,
     calculate_euclidean_distance,
@@ -7,18 +7,18 @@ from tb3_agent.tools.math_tools import (
     calculate_relative_angle_from_yaw,
     degrees_to_radians,
 )
-from tb3_agent.tools.motion_tools import (
+from turtlebot3_agent.tools.motion_tools import (
     make_move_linear_tool,
     make_move_non_linear_tool,
     make_rotate_tool,
 )
 
-# from tb3_agent.tools.navigation_tools import make_navigate_to_goal_tool
-from tb3_agent.tools.sensor_tools import (
+# from turtlebot3_agent.tools.navigation_tools import make_navigate_to_goal_tool
+from turtlebot3_agent.tools.sensor_tools import (
     make_get_lidar_scan_tool,
     make_start_camera_display_tool,
 )
-from tb3_agent.tools.status_tools import make_get_turtle_pose_tool
+from turtlebot3_agent.tools.status_tools import make_get_turtle_pose_tool
 
 
 def make_all_tools(node) -> list:

@@ -17,7 +17,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image, LaserScan
 from transforms3d.euler import quat2euler
 
-from tb3_agent.utils import normalize_angle
+from turtlebot3_agent.utils import normalize_angle
 
 TWIST_ANGULAR = 0.30
 TWIST_VELOCITY = 0.21
@@ -33,7 +33,7 @@ PUBLISH_RATE = 0.05
 class TB3Agent(Node):
     def __init__(self):
         """Initialize the TB3Agent node with publishers and subscribers."""
-        super().__init__("tb3_agent")
+        super().__init__("turtlebot3_agent")
         self.declare_parameter("interface", "cli")
         self.declare_parameter("agent_model", "gemini-2.0-flash")
 

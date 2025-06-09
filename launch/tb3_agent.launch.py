@@ -19,7 +19,7 @@ def generate_launch_description():
     )
 
     ekf_config_file_path = os.path.join(
-        get_package_share_directory("tb3_agent"), "config", "ekf_turtlebot3.yaml"
+        get_package_share_directory("turtlebot3_agent"), "config", "ekf_turtlebot3.yaml"
     )
 
     ekf_node = Node(

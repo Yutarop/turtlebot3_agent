@@ -1,4 +1,4 @@
-from tb3_agent.interface.base_interface import BaseAgentInterface
+from turtlebot3_agent.interface.base_interface import BaseAgentInterface
 
 
 class GUIAgentInterface(BaseAgentInterface):

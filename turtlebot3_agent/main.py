@@ -12,10 +12,10 @@ from dotenv import load_dotenv
 from langchain.agents import AgentExecutor
 from rclpy.executors import ExternalShutdownException, SingleThreadedExecutor
 
-from tb3_agent.chat_entrypoint import chat_invoke
-from tb3_agent.llms import create_agent
-from tb3_agent.tb3_node import TB3Agent
-from tb3_agent.tools.all_tools import make_all_tools
+from turtlebot3_agent.chat_entrypoint import chat_invoke
+from turtlebot3_agent.llms import create_agent
+from turtlebot3_agent.tb3_node import TB3Agent
+from turtlebot3_agent.tools.all_tools import make_all_tools
 
 load_dotenv()
 

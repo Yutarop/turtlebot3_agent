@@ -6,8 +6,8 @@ import rclpy
 from langchain.agents import AgentExecutor
 from rclpy.node import Node
 
-from tb3_agent.interface.chat_gui import ChatUI
-from tb3_agent.interface.gui_interface import GUIAgentInterface
+from turtlebot3_agent.interface.chat_gui import ChatUI
+from turtlebot3_agent.interface.gui_interface import GUIAgentInterface
 
 
 def chat_invoke(

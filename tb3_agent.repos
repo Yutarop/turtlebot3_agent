@@ -2,16 +2,12 @@ repositories:
   turtlebot3_simulations:
     type: git
     url: https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
-    version: humble-devel
+    version: humble
   turtlebot3_msgs:
     type: git
     url: https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git
-    version: humble-devel
+    version: humble
   turtlebot3:
     type: git
     url: https://github.com/ROBOTIS-GIT/turtlebot3.git
-    version: humble-devel
-  robot_localization:
-    type: git
-    url: https://github.com/cra-ros-pkg/robot_localization.git
     version: humble-devel
