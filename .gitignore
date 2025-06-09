@@ -1,7 +1,7 @@
-tb3_agent/.env
+turtlebo3_agent/.env
 __pycache__/
-tb3_agent/tools/navigation_tools.py
-tb3_agent/tools/api_tools.py
+turtlebo3_agent/tools/navigation_tools.py
+turtlebo3_agent/tools/api_tools.py
 
 devel/
 logs/

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rclpy
 
-from tb3_agent.tb3_node import TB3Agent
+from turtlebot3_agent.tb3_node import TB3Agent
 
 
 def main():

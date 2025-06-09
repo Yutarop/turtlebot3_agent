@@ -3,7 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import scrolledtext
 
-from tb3_agent.interface.gui_interface import GUIAgentInterface
+from turtlebot3_agent.interface.gui_interface import GUIAgentInterface
 
 
 class ChatUI:

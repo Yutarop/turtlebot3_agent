@@ -3,7 +3,7 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
-package_name = "tb3_agent"
+package_name = "turtlebot3_agent"
 
 setup(
     name=package_name,
@@ -28,8 +28,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "tb3_node_entrypoint = tb3_agent.tb3_node_entrypoint:main",
-            "main = tb3_agent.main:main",
+            "tb3_node_entrypoint = turtlebot3_agent.tb3_node_entrypoint:main",
+            "main = turtlebot3_agent.main:main",
         ],
     },
 )

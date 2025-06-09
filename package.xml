@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>tb3_agent</name>
+  <name>turtlebot3_agent</name>
   <version>0.0.0</version>
   <description>
     A ROS2 package that integrates a TurtleBot3 with LangChain and language models

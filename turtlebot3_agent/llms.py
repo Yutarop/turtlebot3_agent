@@ -8,7 +8,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mistralai import ChatMistralAI
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
-from turtlesim_agent.prompts import prompt
+
+from turtlebot3_agent.prompts import prompt
 
 URL = os.getenv("URL")
 
