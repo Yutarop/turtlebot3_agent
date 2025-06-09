@@ -1,0 +1,16 @@
+google-ai-generativelanguage==0.6.18
+langchain-anthropic==0.3.13
+langchain-cohere==0.4.4
+langchain-community==0.3.23
+langchain-core==0.3.59
+langchain-google-genai==2.1.4
+langchain-mistralai==0.2.10
+langchain-ollama==0.3.2
+langchain-openai==0.3.16
+langchain==0.3.25
+numpy==1.26.4
+opencv-python==4.11.0.86
+pillow==9.0.1
+pydantic==2.11.3
+rclpy==3.3.16
+transforms3d==0.4.2
