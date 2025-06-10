@@ -46,6 +46,21 @@ To specify which Large Language Model (LLM) your agent should use, you need to c
  ```python
  self.declare_parameter("agent_model", "gpt-4o-mini")
  ```
+#### (Optional) Enable Tracing with LangSmith
+To trace and debug agent behavior using LangSmith, set the following environment variables:
+
+Basic Tracing Configuration:
+```bash
+export LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+export LANGSMITH_TRACING=false
+```
+Full Configuration with API Key and Project Name:
+```bash
+export LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+export LANGSMITH_TRACING=true
+export LANGSMITH_API_KEY=your_api_key_here
+export LANGSMITH_PROJECT=your_project_name_here
+```
 
 #### Apply the changes
 Once you have configured the variables, proceed to build and apply the changes to finalize the setup:
