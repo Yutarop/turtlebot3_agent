@@ -242,3 +242,87 @@ class TB3Agent(Node):
 
         self._stop_robot()
         return True
+
+    def compute_navigation_function_gradient(self):
+        """
+        Compute the gradient of the navigation function for obstacle avoidance.
+
+        Returns:
+            tuple: (fx, fy) components of the gradient
+        """
+        dx = self.goal_x - self.x
+        dy = self.goal_y - self.y
+        dist_to_goal_sq = dx**2 + dy**2
+
+        beta = 0.0
+        grad_beta_x, grad_beta_y = 0.0, 0.0
+
+        angle = self.scan.angle_min
+        for r in self.scan.ranges:
+            if self.min_distance < r < self.max_distance:
+                ox = self.x + r * math.cos(angle + self.yaw)
+                oy = self.y + r * math.sin(angle + self.yaw)
+                dxo = self.x - ox
+                dyo = self.y - oy
+                dist = math.sqrt(dxo**2 + dyo**2)
+                if dist == 0:
+                    continue
+                b = 1.0 / (dist**2)
+                beta += b
+                grad_beta_x += -2 * dxo * b / (dist**2)
+                grad_beta_y += -2 * dyo * b / (dist**2)
+            angle += self.scan.angle_increment
+
+        denom = (dist_to_goal_sq + beta) ** 2 + 1e-6
+        fx = (2 * dx * (dist_to_goal_sq + beta) - dist_to_goal_sq * grad_beta_x) / denom
+        fy = (2 * dy * (dist_to_goal_sq + beta) - dist_to_goal_sq * grad_beta_y) / denom
+
+        return fx, fy
+
+    def navigate_to_goal(self, x, y):
+        """
+        Navigate to a goal position with obstacle avoidance.
+
+        Args:
+            x: Target x coordinate
+            y: Target y coordinate
+
+        Returns:
+            bool: True if navigation completed successfully
+        """
+        self.goal_x = x
+        self.goal_y = y
+        self.goal_is_active = True
+
+        if not self.wait_for_pose():
+            self.get_logger().error("Pose or scan not ready.")
+            return False
+
+        while self.goal_is_active and rclpy.ok():
+            fx, fy = self.compute_navigation_function_gradient()
+            dx = self.goal_x - self.x
+            dy = self.goal_y - self.y
+            dist = math.sqrt(dx**2 + dy**2)
+
+            if dist < 0.1:
+                self._stop_robot()
+                self.get_logger().info("Goal reached.")
+                self.goal_is_active = False
+                return True
+
+            mag = math.sqrt(fx**2 + fy**2) + 1e-6
+            fx /= mag
+            fy /= mag
+
+            target_yaw = math.atan2(fy, fx)
+            angle_diff = normalize_angle(target_yaw - self.yaw)
+
+            twist = Twist()
+            twist.linear.x = 0.2 if abs(angle_diff) < 0.5 else 0.1
+            twist.angular.z = max(
+                -self.max_angular_speed,
+                min(self.max_angular_speed, self.k_angle * angle_diff),
+            )
+            self.pub.publish(twist)
+            time.sleep(PUBLISH_RATE)
+        return False
