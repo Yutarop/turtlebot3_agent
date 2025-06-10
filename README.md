@@ -5,9 +5,13 @@
 
 ## TurtleBot3 Agent Demo
 ##### Prompt used
-> Please move forward 1 meter and check for any obstacles around you. If you find an obstacle, show me an image and come back to your staring point.
+> Please move to (2.0, 2.0). Then, check for any obstacles around you there. If you find an obstacle, show me an image and come back to your staring point.
 
-https://github.com/user-attachments/assets/5067c6b7-2528-4049-82ca-489d083d3307
+
+
+https://github.com/user-attachments/assets/5eb21ea0-ab1f-4d9c-b051-ef4c97e58262
+
+
 
 ## Getting Started
 #### Requirements
