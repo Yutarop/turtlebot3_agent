@@ -32,7 +32,7 @@ $ cd ~/{ROS_WORKSPACE} && colcon build
 To make your API keys available in your development environment, add them to your shell configuration file (e.g., `~/.bashrc`, `~/.zshrc`), then reload the file using `source`.
 
 ```bash
-# TurtleBot3 model with camera
+# TurtleBot3 model with camera (if you would like to use camera)
 export TURTLEBOT3_MODEL=burger_cam
 
 # API keys for LLM providers (set only the one you plan to use)
