@@ -75,6 +75,21 @@ $ source ~/.bashrc
 
 ### 3. Run
 ```bash
+# launch the ekf_node and gazebo
 $ ros2 launch turtlebot3_agent tb3_agent.launch.py
+
+# run tb3_node
 $ ros2 run turtlebot3_agent main
+```
+
+## Provided Tools for the AI Agent
+`TurtleBot3 Agent` utilizes the tools implemented in the `tools/` directory as callable functions that it can invoke during the reasoning process to accomplish tasks. 
+#### Tools
+```
+tools/
+├── all_tools.py        # Consolidates and provides access to all available tools for the system
+├── math_tools.py       # Performs arithmetic and geometric calculations
+├── status_tools.py     # Retrieves the current status of the TurtleBot3, such as position and orientation
+├── motion_tools.py     # Manages TurtleBot3 movement, such as forward motion and rotation
+└── sensor_tools.py     # Handles TurtleBot3 camera and LiDAR operations, such as capturing images and scanning the environment
 ```
