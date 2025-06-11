@@ -45,7 +45,7 @@ export MISTRAL_API_KEY=your_mistral_api_key
 
 To specify which Large Language Model (LLM) your agent should use, you need to configure the model name.
 
-- **Python ([turtleagent_node.py](https://github.com/Yutarop/turtlebot3_agent/blob/main/turtlebot3_agent/tb3_node.py)):**
+- **Python ([tb3_node.py](https://github.com/Yutarop/turtlebot3_agent/blob/main/turtlebot3_agent/tb3_node.py)):**
 
  ```python
  self.declare_parameter("agent_model", "gpt-4o-mini")
