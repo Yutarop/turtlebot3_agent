@@ -2,6 +2,7 @@ turtlebo3_agent/.env
 __pycache__/
 turtlebo3_agent/tools/navigation_tools.py
 turtlebo3_agent/tools/api_tools.py
+command.txt
 
 devel/
 logs/
