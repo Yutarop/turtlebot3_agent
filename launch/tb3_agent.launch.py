@@ -14,7 +14,7 @@ def generate_launch_description():
     )
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(gazebo_launch_dir, "empty_world.launch.py")
+            os.path.join(gazebo_launch_dir, "turtlebot3_world.launch.py")
         )
     )
 
