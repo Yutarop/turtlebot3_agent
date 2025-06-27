@@ -10,7 +10,9 @@ from turtlebot3_agent.tools.math_tools import (
 from turtlebot3_agent.tools.motion_tools import (
     make_move_linear_tool,
     make_move_non_linear_tool,
+    make_navigate_to_pose_tool,
     make_rotate_tool,
+    make_transform_odom_to_map_tool,
 )
 
 # from turtlebot3_agent.tools.navigation_tools import make_navigate_to_goal_tool
@@ -39,9 +41,11 @@ def make_all_tools(node) -> list:
         calculate_relative_angle_from_yaw,
         degrees_to_radians,
         calculate_distance_and_relative_angle,
+        make_transform_odom_to_map_tool(node),
         make_start_camera_display_tool(node),
         make_move_linear_tool(node),
         make_move_non_linear_tool(node),
+        make_navigate_to_pose_tool(node),
         make_rotate_tool(node),
         make_get_turtle_pose_tool(node),
         make_get_lidar_scan_tool(node),

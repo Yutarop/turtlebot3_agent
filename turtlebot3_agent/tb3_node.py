@@ -10,12 +10,17 @@ import threading
 import time
 
 import rclpy
+import tf2_geometry_msgs
+import tf2_ros
 from cv_bridge import CvBridge
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import PointStamped, PoseStamped, TransformStamped, Twist
+from nav2_msgs.action import NavigateToPose
 from nav_msgs.msg import Odometry
+from rclpy.action import ActionClient
 from rclpy.node import Node
 from sensor_msgs.msg import Image, LaserScan
-from transforms3d.euler import quat2euler
+from tf2_ros import TransformException
+from transforms3d.euler import euler2quat, quat2euler
 
 from turtlebot3_agent.utils import normalize_angle
 
@@ -49,6 +54,13 @@ class TB3Agent(Node):
         self.create_subscription(Odometry, TOPIC_ODOMETRY, self.odom_callback, 10)
         self.create_subscription(LaserScan, TOPIC_SCAN, self.scan_callback, 10)
         self.create_subscription(Image, TOPIC_IMG, self.image_callback, 10)
+
+        # Nav2 Action Client
+        self._nav_client = ActionClient(self, NavigateToPose, "/navigate_to_pose")
+
+        # TF2 Buffer and Listener for coordinate transformations - この2行を追加
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
         # Sensor data
         self.scan = None
@@ -242,3 +254,142 @@ class TB3Agent(Node):
 
         self._stop_robot()
         return True
+
+    def navigate_to_pose(self, x, y, yaw, timeout_sec=30.0):
+        """
+        Navigate to a specific pose using Nav2 NavigateToPose action.
+
+        Args:
+            x (float): Goal X coordinate in meters (map frame)
+            y (float): Goal Y coordinate in meters (map frame)
+            yaw (float): Goal yaw angle in radians
+            timeout_sec (float): Maximum time to wait for navigation completion
+
+        Returns:
+            bool: True if navigation completed successfully, False otherwise
+        """
+        # Wait for action server
+        if not self._nav_client.wait_for_server(timeout_sec=5.0):
+            self.get_logger().error("NavigateToPose action server not available.")
+            return False
+
+        # Create goal message
+        goal_msg = NavigateToPose.Goal()
+        goal_msg.pose = PoseStamped()
+        goal_msg.pose.header.frame_id = "map"
+        goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
+
+        # Set position
+        goal_msg.pose.pose.position.x = float(x)
+        goal_msg.pose.pose.position.y = float(y)
+        goal_msg.pose.pose.position.z = 0.0
+
+        # Convert yaw to quaternion
+        quat = euler2quat(0, 0, yaw)  # (roll, pitch, yaw)
+        goal_msg.pose.pose.orientation.w = float(quat[0])
+        goal_msg.pose.pose.orientation.x = float(quat[1])
+        goal_msg.pose.pose.orientation.y = float(quat[2])
+        goal_msg.pose.pose.orientation.z = float(quat[3])
+
+        self.get_logger().info(f"Sending navigation goal: x={x}, y={y}, yaw={yaw}")
+
+        # Send goal
+        send_goal_future = self._nav_client.send_goal_async(goal_msg)
+
+        # Wait for goal acceptance
+        rclpy.spin_until_future_complete(self, send_goal_future, timeout_sec=5.0)
+
+        if not send_goal_future.done():
+            self.get_logger().error("Failed to send goal within timeout")
+            return False
+
+        goal_handle = send_goal_future.result()
+        if not goal_handle.accepted:
+            self.get_logger().error("Goal rejected by NavigateToPose server")
+            return False
+
+        self.get_logger().info("Goal accepted, waiting for result...")
+
+        # Wait for result
+        result_future = goal_handle.get_result_async()
+        rclpy.spin_until_future_complete(self, result_future, timeout_sec=timeout_sec)
+
+        if not result_future.done():
+            self.get_logger().error("Navigation timed out")
+            # Cancel the goal
+            cancel_future = goal_handle.cancel_goal_async()
+            rclpy.spin_until_future_complete(self, cancel_future, timeout_sec=2.0)
+            return False
+
+        result = result_future.result()
+        if result.status == 4:  # SUCCEEDED
+            self.get_logger().info("Navigation completed successfully!")
+            return True
+        else:
+            self.get_logger().error(f"Navigation failed with status: {result.status}")
+            return False
+
+    def transform_odom_to_map(self, odom_x, odom_y, odom_yaw):
+        """
+        Transform coordinates from odom frame to map frame.
+
+        Args:
+            odom_x (float): X coordinate in odom frame (meters)
+            odom_y (float): Y coordinate in odom frame (meters)
+            odom_yaw (float): Yaw angle in odom frame (radians)
+
+        Returns:
+            tuple: (map_x, map_y, map_yaw) coordinates in map frame
+
+        Raises:
+            Exception: If transform lookup fails
+        """
+        try:
+            # Wait for transform to be available
+            self.tf_buffer.can_transform(
+                "map",
+                "odom",
+                rclpy.time.Time(),
+                timeout=rclpy.duration.Duration(seconds=1.0),
+            )
+
+            # Get the transform from odom to map
+            transform = self.tf_buffer.lookup_transform(
+                "map", "odom", rclpy.time.Time()
+            )
+
+            # Transform the position
+            point_odom = PointStamped()
+            point_odom.header.frame_id = "odom"
+            point_odom.header.stamp = self.get_clock().now().to_msg()
+            point_odom.point.x = odom_x
+            point_odom.point.y = odom_y
+            point_odom.point.z = 0.0
+
+            point_map = tf2_geometry_msgs.do_transform_point(point_odom, transform)
+
+            # Transform the orientation
+            # Extract rotation from transform
+            trans_quat = transform.transform.rotation
+            trans_euler = quat2euler(
+                [trans_quat.w, trans_quat.x, trans_quat.y, trans_quat.z]
+            )
+            trans_yaw = trans_euler[2]  # Z-axis rotation (yaw)
+
+            # Add the yaw angles
+            map_yaw = odom_yaw + trans_yaw
+
+            # Normalize the angle to [-pi, pi]
+            while map_yaw > math.pi:
+                map_yaw -= 2 * math.pi
+            while map_yaw < -math.pi:
+                map_yaw += 2 * math.pi
+
+            return point_map.point.x, point_map.point.y, map_yaw
+
+        except TransformException as ex:
+            self.get_logger().error(f"Could not transform from odom to map: {ex}")
+            raise Exception(f"Transform failed: {ex}")
+        except Exception as ex:
+            self.get_logger().error(f"Unexpected error during transformation: {ex}")
+            raise Exception(f"Transform failed: {ex}")
