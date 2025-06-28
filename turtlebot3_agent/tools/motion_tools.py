@@ -157,11 +157,15 @@ def make_navigate_to_pose_tool(node):
         if success:
             if not node.wait_for_pose(timeout=0.5):
                 return "Navigation completed, but pose data not received yet."
-            return (
-                f"Navigation completed successfully! "
-                f"You are now at position ({round(node.x, 2)}, {round(node.y, 2)}) "
-                f"with a yaw angle of {round(node.yaw, 3)} radians."
-            )
+            else:
+                map_x, map_y, map_yaw = node.transform_odom_to_map(
+                    odom_x=node.x, odom_y=node.y, odom_yaw=node.yaw
+                )
+                return (
+                    f"Navigation completed successfully! "
+                    f"You are now at position ({round(map_x, 2)}, {round(map_y, 2)}) in the map frame"
+                    f"with a yaw angle of {round(map_yaw, 3)} radians."
+                )
         else:
             return "Navigation failed. The goal may be unreachable or the action server is not available."
 
@@ -195,9 +199,9 @@ def make_transform_odom_to_map_tool(node):
     """
 
     class TransformInput(BaseModel):
-        odom_x: float = Field(description="X coordinate in odom frame (meters)")
-        odom_y: float = Field(description="Y coordinate in odom frame (meters)")
-        odom_yaw: float = Field(description="Yaw angle in odom frame (radians)")
+        odom_x: float = Field(description="X coordinate in pose frame (meters)")
+        odom_y: float = Field(description="Y coordinate in pose frame (meters)")
+        odom_yaw: float = Field(description="Yaw angle in pose frame (radians)")
 
     def inner(inputs: TransformInput) -> str:
         try:
@@ -205,9 +209,9 @@ def make_transform_odom_to_map_tool(node):
                 odom_x=inputs.odom_x, odom_y=inputs.odom_y, odom_yaw=inputs.odom_yaw
             )
             return (
-                f"Transformed coordinates from odom to map frame:\n"
-                f"Odom: ({round(inputs.odom_x, 3)}, {round(inputs.odom_y, 3)}, {round(inputs.odom_yaw, 3)} rad)\n"
-                f"Map:  ({round(map_x, 3)}, {round(map_y, 3)}, {round(map_yaw, 3)} rad)"
+                f"Transformed coordinates from pose to map frame:\n"
+                f"Odom: ({round(inputs.odom_x, 2)}, {round(inputs.odom_y, 2)}, {round(inputs.odom_yaw, 2)} rad)\n"
+                f"Map:  ({round(map_x, 2)}, {round(map_y, 2)}, {round(map_yaw, 2)} rad)"
             )
         except Exception as e:
             return f"Failed to transform coordinates: {str(e)}"
@@ -216,7 +220,7 @@ def make_transform_odom_to_map_tool(node):
         func=inner,
         name="transform_odom_to_map",
         description="""
-        Transform coordinates from odom frame to map frame using TF2.
+        Transform coordinates from pose frame to map frame using TF2.
 
         Args:
         - odom_x (float): X coordinate in robot's current frame (meters)
