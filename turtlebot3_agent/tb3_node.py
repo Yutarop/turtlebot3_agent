@@ -24,10 +24,6 @@ from transforms3d.euler import euler2quat, quat2euler
 
 from turtlebot3_agent.utils import normalize_angle
 
-TWIST_ANGULAR = 0.30
-TWIST_VELOCITY = 0.21
-ROTATION_ERROR_THRESHOLD = 0.017  # radians
-DISTANCE_ERROR_THRESHOLD = 0.02  # meters
 TOPIC_CMD_VEL = "/cmd_vel"
 TOPIC_ODOMETRY = "/odom"
 TOPIC_IMG = "/camera/image_raw"
