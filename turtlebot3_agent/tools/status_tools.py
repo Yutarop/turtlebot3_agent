@@ -42,8 +42,3 @@ def make_get_turtle_pose_tool(node):
         - Orientation: yaw (in radians)
         """,
     )
-
-
-# @tool
-def get_battery_level():
-    pass
