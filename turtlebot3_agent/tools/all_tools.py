@@ -1,4 +1,7 @@
+from langgraph.graph import MessagesState
+
 from turtlebot3_agent.tools.motion_tools import (
+    make_detect_traffic_cone_tool,
     make_navigate_to_pose_tool,
     make_transform_odom_to_map_tool,
 )
@@ -17,6 +20,7 @@ def make_all_tools(node) -> list:
         list: List of tools available to the agent
     """
     return [
+        make_detect_traffic_cone_tool(node),
         make_transform_odom_to_map_tool(node),
         make_start_camera_display_tool(node),
         make_navigate_to_pose_tool(node),

@@ -4,14 +4,15 @@ TurtleBot3 agent node for ROS2.
 This module defines the TB3Agent class which manages the robot's movement, navigation,
 and sensor data processing.
 """
-
 import math
+import os
 import threading
 import time
 
 import rclpy
 import tf2_geometry_msgs
 import tf2_ros
+from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PointStamped, PoseStamped, TransformStamped, Twist
 from nav2_msgs.action import NavigateToPose
@@ -21,6 +22,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image, LaserScan
 from tf2_ros import TransformException
 from transforms3d.euler import euler2quat, quat2euler
+from ultralytics import YOLO
 
 from turtlebot3_agent.utils import normalize_angle
 
@@ -54,7 +56,7 @@ class TB3Agent(Node):
         # Nav2 Action Client
         self._nav_client = ActionClient(self, NavigateToPose, "/navigate_to_pose")
 
-        # TF2 Buffer and Listener for coordinate transformations - この2行を追加
+        # TF2 Buffer and Listener for coordinate transformations
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
@@ -77,6 +79,23 @@ class TB3Agent(Node):
         self.max_distance = 0.8
         self.k_angle = 0.7
         self.max_angular_speed = 0.3
+
+        # Initialize YOLO model for cone detection
+        try:
+            package_share_dir = get_package_share_directory(
+                "ros2_traffic_cone_detection"
+            )
+            model_path = os.path.join(package_share_dir, "models", "cone_detection.pt")
+            self.cone_model = YOLO(model_path, verbose=False)
+            # self.get_logger().info(f"YOLO model loaded from: {model_path}")
+        except Exception as e:
+            self.get_logger().warning(f"Could not load YOLO model: {e}")
+            self.cone_model = None
+
+        # State management for cone detection
+        self.cone_detected = False
+        self.is_cone_detection_active = False
+        self.cone_detection_lock = threading.Lock()
 
         # Synchronization
         self.pose_ready = threading.Event()
@@ -123,94 +142,131 @@ class TB3Agent(Node):
         return self.pose_ready.wait(timeout=timeout)
 
     def image_callback(self, msg):
-        """Process incoming img data"""
+        """Process incoming image data and detect cones if active"""
         self.camera_image = msg
+
+        # Process only if cone detection is active and the model is available
+        if self.is_cone_detection_active and self.cone_model is not None:
+            self._detect_cones_in_image(msg)
+
+    def start_cone_detection(self):
+        self.is_cone_detection_active = True
+
+    def _detect_cones_in_image(self, image_msg):
+        """Detect cones in the image"""
+        try:
+            # Convert ROS Image message to OpenCV format
+            cv_image = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="bgr8")
+
+            # Run YOLO inference
+            results = self.cone_model(cv_image)
+
+            for box in results[0].boxes:
+                cls_id = int(box.cls[0].item())
+                cls_name = self.cone_model.names[cls_id]
+
+                if "cone" in cls_name.lower():
+                    self.cone_detected = True
+                    self.get_logger().info(f"detected")
+                    self.is_cone_detection_active = False
+
+        except Exception as e:
+            self.get_logger().error(f"Error in cone detection: {e}")
 
     def get_latest_image(self) -> Image:
         if self.latest_image is None:
             raise RuntimeError("No image received yet.")
         return self.latest_image
 
-    def _stop_robot(self):
-        """Send stop commands to bring the robot to a complete halt."""
-        stop_cmd = Twist()
-        for _ in range(5):
-            self.pub.publish(stop_cmd)
-            time.sleep(PUBLISH_RATE)
+    def navigate_to_pose_async(self, x, y, yaw, timeout_sec=30.0):
+        """Start navigation asynchronously (from change_goal.py)"""
+        self._navigation_thread = threading.Thread(
+            target=self._navigate_to_pose, args=(x, y, yaw, timeout_sec)
+        )
+        self._navigation_thread.start()
 
-    def navigate_to_pose(self, x, y, yaw, timeout_sec=30.0):
-        """
-        Navigate to a specific pose using Nav2 NavigateToPose action.
-
-        Args:
-            x (float): Goal X coordinate in meters (map frame)
-            y (float): Goal Y coordinate in meters (map frame)
-            yaw (float): Goal yaw angle in radians
-            timeout_sec (float): Maximum time to wait for navigation completion
-
-        Returns:
-            bool: True if navigation completed successfully, False otherwise
-        """
-        # Wait for action server
+    def _navigate_to_pose(self, x, y, yaw, timeout_sec=30.0):
+        """Internal method: Execute asynchronous navigation (from change_goal.py)"""
         if not self._nav_client.wait_for_server(timeout_sec=5.0):
             self.get_logger().error("NavigateToPose action server not available.")
             return False
 
-        # Create goal message
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = PoseStamped()
         goal_msg.pose.header.frame_id = "map"
         goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
-
-        # Set position
         goal_msg.pose.pose.position.x = float(x)
         goal_msg.pose.pose.position.y = float(y)
-        goal_msg.pose.pose.position.z = 0.0
 
-        # Convert yaw to quaternion
-        quat = euler2quat(0, 0, yaw)  # (roll, pitch, yaw)
-        goal_msg.pose.pose.orientation.w = float(quat[0])
-        goal_msg.pose.pose.orientation.x = float(quat[1])
-        goal_msg.pose.pose.orientation.y = float(quat[2])
-        goal_msg.pose.pose.orientation.z = float(quat[3])
+        quat = euler2quat(0, 0, yaw)  # (x, y, z, w)
+        goal_msg.pose.pose.orientation.x = float(quat[0])
+        goal_msg.pose.pose.orientation.y = float(quat[1])
+        goal_msg.pose.pose.orientation.z = float(quat[2])
+        goal_msg.pose.pose.orientation.w = float(quat[3])
 
-        self.get_logger().info(f"Sending navigation goal: x={x}, y={y}, yaw={yaw}")
-
-        # Send goal
+        self.get_logger().info(f"Sending async goal: x={x}, y={y}, yaw={yaw}")
         send_goal_future = self._nav_client.send_goal_async(goal_msg)
-
-        # Wait for goal acceptance
-        rclpy.spin_until_future_complete(self, send_goal_future, timeout_sec=5.0)
-
-        if not send_goal_future.done():
-            self.get_logger().error("Failed to send goal within timeout")
-            return False
+        rclpy.spin_until_future_complete(self, send_goal_future)
 
         goal_handle = send_goal_future.result()
         if not goal_handle.accepted:
-            self.get_logger().error("Goal rejected by NavigateToPose server")
+            self.get_logger().error("Goal rejected")
             return False
 
+        self._current_goal_handle = goal_handle
         self.get_logger().info("Goal accepted, waiting for result...")
 
-        # Wait for result
-        result_future = goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(self, result_future, timeout_sec=timeout_sec)
-
-        if not result_future.done():
-            self.get_logger().error("Navigation timed out")
-            # Cancel the goal
-            cancel_future = goal_handle.cancel_goal_async()
-            rclpy.spin_until_future_complete(self, cancel_future, timeout_sec=2.0)
+        try:
+            result_future = goal_handle.get_result_async()
+            rclpy.spin_until_future_complete(
+                self, result_future, timeout_sec=timeout_sec
+            )
+            if not result_future.done():
+                self.get_logger().warning("Navigation timeout. Cancelling...")
+                self._cancel_current_goal()
+                return False
+            result = result_future.result()
+        except Exception as e:
+            self.get_logger().error(f"Exception during navigation: {e}")
+            self._cancel_current_goal()
             return False
 
-        result = result_future.result()
-        if result.status == 4:  # SUCCEEDED
-            self.get_logger().info("Navigation completed successfully!")
-            return True
+        if result.status == 4:
+            self.get_logger().info("Navigation succeeded!")
         else:
-            self.get_logger().error(f"Navigation failed with status: {result.status}")
-            return False
+            self.get_logger().warning(f"Navigation failed with status: {result.status}")
+        return True
+
+    def wait_for_navigation_completion(self):
+        """Wait for asynchronous navigation to complete"""
+        if self._navigation_thread is not None:
+            self._navigation_thread.join()
+
+    def change_goal(self, x, y, yaw, timeout_sec=30.0):
+        """Change the goal during navigation (from change_goal.py)"""
+        self.get_logger().info("Changing goal...")
+        self._cancel_current_goal()
+        self.navigate_to_pose_async(x, y, yaw, timeout_sec)
+
+    def _cancel_current_goal(self):
+        """Cancel the current goal (from change_goal.py)"""
+        if self._current_goal_handle is not None:
+            self.get_logger().info("Cancelling current goal...")
+            cancel_future = self._current_goal_handle.cancel_goal_async()
+            rclpy.spin_until_future_complete(self, cancel_future, timeout_sec=2.0)
+
+            cancel_response = cancel_future.result()
+            if len(cancel_response.goals_canceling) > 0:
+                self.get_logger().info(
+                    "Goal successfully cancelled. Waiting a bit before sending new goal..."
+                )
+                time.sleep(1.0)  # Time for Nav2 to complete internal processing
+            else:
+                self.get_logger().warning(
+                    "Goal cancellation failed or was already finished."
+                )
+
+            self._current_goal_handle = None
 
     def transform_odom_to_map(self, odom_x, odom_y, odom_yaw):
         """

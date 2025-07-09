@@ -4,10 +4,13 @@ import tkinter as tk
 
 import rclpy
 from langchain.agents import AgentExecutor
+from langchain_core.messages import HumanMessage
 from rclpy.node import Node
 
 from turtlebot3_agent.interface.chat_gui import ChatUI
 from turtlebot3_agent.interface.gui_interface import GUIAgentInterface
+
+LAST = -1
 
 
 def chat_invoke(
@@ -30,8 +33,10 @@ def _run_cli(agent_executor: AgentExecutor, node: Node, spin_thread: threading.T
             user_input = input("user: ")
             if user_input.lower() in {"quit", "exit"}:
                 break
-            result = agent_executor.invoke(input={"input": user_input})
-            print("turtlebot agent:", result["output"])
+            result = agent_executor.invoke(
+                {"messages": [HumanMessage(content=user_input)]}
+            )
+            print("turtlebot agent:", result["messages"][LAST].content)
     except KeyboardInterrupt:
         node.get_logger().info("User interrupted. Shutting down...")
     finally:
