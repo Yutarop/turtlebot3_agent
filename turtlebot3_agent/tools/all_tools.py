@@ -5,7 +5,10 @@ from turtlebot3_agent.tools.motion_tools import (
     make_navigate_to_pose_tool,
     make_transform_odom_to_map_tool,
 )
-from turtlebot3_agent.tools.sensor_tools import make_start_camera_display_tool
+from turtlebot3_agent.tools.sensor_tools import (
+    make_get_lidar_scan_tool,
+    make_start_camera_display_tool,
+)
 from turtlebot3_agent.tools.status_tools import make_get_turtle_pose_tool
 
 
@@ -25,4 +28,5 @@ def make_all_tools(node) -> list:
         make_start_camera_display_tool(node),
         make_navigate_to_pose_tool(node),
         make_get_turtle_pose_tool(node),
+        make_get_lidar_scan_tool(node),
     ]

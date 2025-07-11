@@ -185,7 +185,7 @@ class TB3Agent(Node):
         )
         self._navigation_thread.start()
 
-    def _navigate_to_pose(self, x, y, yaw, timeout_sec=30.0):
+    def _navigate_to_pose(self, x, y, yaw, timeout_sec=60.0):
         """Internal method: Execute asynchronous navigation (from change_goal.py)"""
         if not self._nav_client.wait_for_server(timeout_sec=5.0):
             self.get_logger().error("NavigateToPose action server not available.")
