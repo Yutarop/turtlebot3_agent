@@ -2,7 +2,6 @@
 
 
 from langchain.tools import StructuredTool
-from pydantic import BaseModel, Field
 from pydantic.v1 import BaseModel, Field
 
 
