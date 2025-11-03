@@ -5,11 +5,11 @@
 
 ## TurtleBot3 Agent Demo
 ##### Prompt used
-> Please move to (2.0, 2.0). Then, check for any obstacles around you there. If you find an obstacle, show me an image and come back to your staring point.
+> I want you to move in square. Each length should be 0.5 meters long.
 
 
 
-https://github.com/user-attachments/assets/5eb21ea0-ab1f-4d9c-b051-ef4c97e58262
+https://github.com/user-attachments/assets/041366f3-157e-4622-95c3-df27afcd2f98
 
 
 
