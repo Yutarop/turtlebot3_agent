@@ -12,5 +12,5 @@ numpy==1.26.4
 opencv-python==4.11.0.86
 pillow==9.0.1
 pydantic==2.11.3
-rclpy==3.3.16
 transforms3d==0.4.2
+cohere==5.15.0
