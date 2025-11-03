@@ -1,5 +1,3 @@
-![logo4](https://github.com/user-attachments/assets/5075b307-f1cb-44af-8c01-1919d2b9397d)
-![ROS2-humble Industrial CI](https://github.com/Yutarop/turtlebot3_agent/actions/workflows/ros2_ci.yml/badge.svg)
 ## Project Overview
 `TurtleBot3 Agent` enables intuitive control of a TurtleBot3 robot using natural language. It interprets user instructions and uses tools to perform tasks such as moving, accessing sensor data, and navigating.
 
