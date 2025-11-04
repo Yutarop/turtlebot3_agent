@@ -58,7 +58,7 @@ class TB3Agent(Node):
         # Nav2 Action Client
         self._nav_client = ActionClient(self, NavigateToPose, "/navigate_to_pose")
 
-        # TF2 Buffer and Listener for coordinate transformations - この2行を追加
+        # TF2 Buffer and Listener for coordinate transformations
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
