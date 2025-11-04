@@ -5,14 +5,7 @@
 ##### Prompt used
 > I want you to move in square. Each length should be 0.5 meters long.
 
-
-
-
-
-https://github.com/user-attachments/assets/c2d56318-65da-46f3-aa2e-d7952b805cc3
-
-
-
+https://github.com/user-attachments/assets/033b9089-e20c-4a29-9203-5779a9b7d532
 
 ## Getting Started
 #### Requirements
