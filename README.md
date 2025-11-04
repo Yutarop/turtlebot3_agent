@@ -7,6 +7,10 @@
 
 https://github.com/user-attachments/assets/033b9089-e20c-4a29-9203-5779a9b7d532
 
+#### Behind the Scenes
+You can see which tools are provided and being used in the demo at the URL below:  
+https://smith.langchain.com/public/246d31ee-a674-4f65-ba4f-fe2ae1e52d8b/r/ae995e3b-8363-4c8c-935c-fd65f6b43557
+
 ## Getting Started
 #### Requirements
 - ROS 2 Humble Hawksbill (This project has only been tested with ROS 2 Humble. Compatibility with other ROS 2 distributions is not guaranteed.)
@@ -17,17 +21,14 @@ https://github.com/user-attachments/assets/033b9089-e20c-4a29-9203-5779a9b7d532
 $ cd ~/{ROS_WORKSPACE}/src
 $ git clone https://github.com/Yutarop/turtlebot3_agent.git
 $ python3 -m pip install -r turtlebot3_agent/requirements.txt
-$ vcs import . < turtlebot3_agent/tb3_agent.repos
-$ sudo apt install -y ros-humble-cv-bridge ros-humble-robot-localization
-$ rosdep install -r --from-paths . --ignore-src -y
 $ cd ~/{ROS_WORKSPACE} && colcon build
 ```
 ### 2. Set LLM Models and TurtleBot3 model
-To make your API keys available in your development environment, add them to your shell configuration file (e.g., `~/.bashrc`, `~/.zshrc`), then reload the file using `source`.
+To make your API keys available in your development environment, add them to your shell configuration file (e.g., `~/.bashrc`), then reload the file using `source`.
 
 ```bash
-# TurtleBot3 model with camera (if you would like to use camera)
-export TURTLEBOT3_MODEL=burger_cam
+# Your TurtleBot3 model
+export TURTLEBOT3_MODEL=burger
 
 # API keys for LLM providers (set only the one you plan to use)
 export OPENAI_API_KEY=your_openai_api_key
@@ -69,15 +70,11 @@ $ source ~/.bashrc
 
 ### 3. Run
 ```bash
-# launch the ekf_node and gazebo
-$ ros2 launch turtlebot3_agent tb3_agent.launch.py
-
-# run tb3_node
 $ ros2 run turtlebot3_agent main
 ```
 
 ## Provided Tools for the AI Agent
-`TurtleBot3 Agent` utilizes the tools implemented in the `tools/` directory as callable functions that it can invoke during the reasoning process to accomplish tasks. 
+`TurtleBot3 Agent` utilizes the tools implemented in the `tools/` directory as callable functions that it can invoke during the reasoning process to accomplish tasks. Feel free to customize your tools however you like!
 #### Tools
 ```
 tools/
